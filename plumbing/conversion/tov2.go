@@ -214,6 +214,10 @@ func convertContainerMetric(v2e *loggregator_v2.Envelope, e *events.Envelope) {
 					Unit:  "bytes",
 					Value: float64(t.GetDiskBytesQuota()),
 				},
+				"cpu_weighted": {
+					Unit:  "percentage",
+					Value: t.GetCpuPercentageWeighted(),
+				},
 			},
 		},
 	}

@@ -251,7 +251,7 @@ func tryConvertContainerMetric(v2e *loggregator_v2.Envelope) *events.Envelope {
 	}
 
 	for _, req := range required {
-		if v, ok := gaugeEvent.Metrics[req]; !ok || v == nil || (v.Unit == "" && v.Value == 0) {
+		if !isValidMetric(gaugeEvent.Metrics, req) {
 			return nil
 		}
 	}
@@ -267,7 +267,17 @@ func tryConvertContainerMetric(v2e *loggregator_v2.Envelope) *events.Envelope {
 		DiskBytesQuota:   proto.Uint64(uint64(gaugeEvent.Metrics["disk_quota"].Value)),
 	}
 
+	if isValidMetric(gaugeEvent.Metrics, "cpu_weighted") {
+		// cpu_weighted is optional
+		v1e.ContainerMetric.CpuPercentageWeighted = proto.Float64(gaugeEvent.Metrics["cpu_weighted"].Value)
+	}
+
 	return v1e
+}
+
+func isValidMetric(metrics map[string]*loggregator_v2.GaugeValue, metricName string) bool {
+	v, ok := metrics[metricName]
+	return ok && v != nil && (v.Unit != "" || v.Value != 0)
 }
 
 func convertTags(e *loggregator_v2.Envelope) map[string]string {
